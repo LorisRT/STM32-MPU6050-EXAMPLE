@@ -6,7 +6,6 @@
  ******************************************************************************
  * @attention
  *
- *
  * This software is licensed under terms that can be found in the LICENSE file
  * in the root directory of this software component.
  * If no LICENSE file comes with this software, it is provided AS-IS.
@@ -379,12 +378,13 @@ MPU6050_status_e I2C_Send_Address(uint8_t ADDR, uint8_t rw_bit)
 
 	/* Slave ADDR transmission */
 	*p_I2C1_DR = ((ADDR<<1) | (rw_bit<<0));
-	while((I2C_STM_ADDR_status() == ADDR_MISMATCHED) & (I2C_STM_ACK_status() != NACK)); /* Note: ADDR is not set after NACK reception */
+	while((I2C_STM_ADDR_status() == ADDR_MISMATCHED) && (I2C_STM_ACK_status() != NACK)); /* Note: ADDR is not set after NACK reception */
 	if(I2C_STM_ACK_status() == NACK)
 	{
 		return MPU6050_ADDR_FAIL;
 	}
 	clear_ADDR_reg();
+	
 	return MPU6050_OK;
 }
 
@@ -393,11 +393,12 @@ MPU6050_status_e I2C_Master_Transmitter(uint8_t data)
 {
 	/* Write Data after addressing */
 	*p_I2C1_DR = data;
-	while(((((uint8_t)(*p_I2C1_SR1>>7)) & (0x01)) == 0x00) & (I2C_STM_ACK_status() != NACK));
+	while(((((uint8_t)(*p_I2C1_SR1>>7)) & (0x01)) == 0x00) && (I2C_STM_ACK_status() != NACK));
 	if(I2C_STM_ACK_status() == NACK)
 	{
 		return MPU6050_WRITE_FAIL;
 	}
+	
 	return MPU6050_OK;
 }
 
@@ -420,6 +421,7 @@ MPU6050_status_e I2C_MPU6050_WriteByte(uint8_t slave_reg, uint8_t data)
 
 	/* Send stop condition */
 	*p_I2C1_CR1 = (*p_I2C1_CR1 | (1<<9));
+	
 	return MPU6050_OK;
 }
 
@@ -442,7 +444,7 @@ MPU6050_status_e I2C_MPU6050_ReadByte(uint8_t slave_reg, volatile I2C_ByteHandle
 
 	/* Slave ADDR transmission and read MPU6050 register */
 	*p_I2C1_DR = ((MPU6050_ADR<<1) | (I2C_READ<<0));
-	while((I2C_STM_ADDR_status() == ADDR_MISMATCHED) & (I2C_STM_ACK_status() != NACK)); /* Note: ADDR is not set after NACK reception */
+	while((I2C_STM_ADDR_status() == ADDR_MISMATCHED) && (I2C_STM_ACK_status() != NACK)); /* Note: ADDR is not set after NACK reception */
 	if(I2C_STM_ACK_status() == NACK)
 	{
 		return MPU6050_READ_FAIL;
@@ -480,7 +482,7 @@ MPU6050_status_e I2C_MPU6050_ReadBurst(uint8_t slave_reg, volatile uint8_t *buff
 	while((((uint8_t)(*p_I2C1_SR1)) & (0x01)) == 0x00);
 	/* Send slave ADDR with read bit */
 	*p_I2C1_DR = ((MPU6050_ADR<<1) | (I2C_READ<<0));
-	while((I2C_STM_ADDR_status() == ADDR_MISMATCHED) & (I2C_STM_ACK_status() != NACK)); /* Note: ADDR is not set after NACK reception */
+	while((I2C_STM_ADDR_status() == ADDR_MISMATCHED) && (I2C_STM_ACK_status() != NACK)); /* Note: ADDR is not set after NACK reception */
 	if(I2C_STM_ACK_status() == NACK)
 	{
 		return MPU6050_ERROR;
